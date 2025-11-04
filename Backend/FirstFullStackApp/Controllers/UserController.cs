@@ -30,8 +30,8 @@ public class UserController(UserDbContext context) : ControllerBase
         return Ok(experiences);
     }
         
-    [HttpPost]
-    public async Task<IActionResult> PostWorkExperiences(int userID, WorkExperienceDTO workExperience)
+    [HttpPost, Route("[controller]/[action]/{userID:int}")]
+    public async Task<IActionResult> PostWorkExperiences(int userID, [FromBody] WorkExperienceDTO workExperience)
     {
         User? user = await context.Users.FindAsync(userID);
         if (user == null) return NotFound();
@@ -50,12 +50,15 @@ public class UserDbContext : DbContext
         
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().HasData(new User { ID = 1, FirstName = "John", LastName = "Doe" , Email = "john.doe@default.com", WorkExperiences = new List<WorkExperience>()});
+        
         modelBuilder.Entity<WorkExperience>()
             .HasOne(we => we.User) // A WorkExperience (we) has one User
             .WithMany(u => u.WorkExperiences) // That User (u) has many WorkExperiences
             .HasForeignKey(we => we.UserID) // The link is via the UserId field
             .OnDelete(DeleteBehavior.Cascade); // If a User is deleted, their experiences are also deleted.
+
+        modelBuilder.Entity<User>().HasData(new User { ID = 1, FirstName = "John", LastName = "Doe", Email = "john.doe@default.com", WorkExperiences = new List<WorkExperience>() });
+
     }
         
 }
